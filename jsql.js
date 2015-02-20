@@ -120,8 +120,6 @@ function sum(metric, table){
     return total;
 }
 
-function filter(table, conditions) {return und.where(table, conditions);}
-
 /*
  *Operands:
  *      'lt' = '<'
@@ -144,6 +142,10 @@ function date_filter(table, operand, date) {
     return filtered;
 }
 
+//Filters
+function col_filter(table, cols ){ table = und.pick(table, cols); return table; };
+function cond_filter(table, conditions) {return und.where(table, conditions);}
+
 function parse(conds){
     var date_conds = {};
     var reg_conds = {};
@@ -154,9 +156,12 @@ function parse(conds){
     });
     var pair = [];
     pair.push(reg_conds);
-    pair.push(date_conds);
+    pair.push(date_conds); 
     return pair;
 }
+
+function aggregate(metric, table, cols){ table = und.extend(und.pick(table[0], cols), metric); return table;}
+
 /*end helper functions */
 
 // Args:
@@ -174,16 +179,17 @@ function parse(conds){
 // 5)               ---> Make selected_table (s_table) from f_table, append count and sum 
 // 6)                  ---> return selected table (s_table)
 
-//Example: select(['evar5','evar10', 'date'], ['pageviews'], {"evar10":"game_board_topic", "lt":"2015-03-01"}, dataset);
-
-function select(cols, sums, conds, table) {
-    var reg_conds = parse(conds)[0];
-    var date_conds = parse(conds)[1];
-    var f_table = filter(table, reg_conds);
-    if (und.size(date_conds) > 0) { f_table = date_filter(f_table, und.keys(date_conds), und.values(date_conds));}
-    var s_table = [];
-    und.map(f_table, function(row){ s_table.push(und.pick(row, cols)); });
-    und.map(sums, function(metric){und.extend(s_table[0], sum(metric, f_table), {"total_records":und.size(f_table)});});
-    //console.log((s_table)[0]);
-    return s_table[0];
+//Example: select(['evar5','evar10', 'date'], 'pageviews', {"evar10":"game_board_topic", "lt":"2015-03-01"}, dataset);
+function select(cols, metric, conds, table) {
+    var quantitative = ['pageviews','uniquevisitors','visits'];
+    if (!und.contains(quantitative, metric)) {console.log('Please provide a quantitative metric for sum column');}
+    else{
+      var reg_conds = parse(conds)[0];
+      var date_conds = parse(conds)[1];
+      var f_table = cond_filter(table, reg_conds);
+      if (und.size(date_conds) > 0) { f_table = date_filter(f_table, und.keys(date_conds), und.values(date_conds));}
+      f_table =  aggregate(sum(metric, f_table), f_table, cols);
+      return f_table;
+      //console.log(f_table)    
+    }
 }
