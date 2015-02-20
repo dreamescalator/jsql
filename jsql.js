@@ -166,18 +166,18 @@ function aggregate(metric, table, cols){ table = und.extend(und.pick(table[0], c
 
 // Args:
 //      cols       = column(s) to retrieve (array of strings);
-//      sums       = column(s) to sum (array of strings);
-//      conditions = Conditions given as $k:$v pairs (object); this includes date conditions
-//      dataset    = an array of objects (collection)
+//      metric     = column(s) to sum (array of strings);
+//      conds      = Conditions given as $k:$v pairs (object); this includes date conditions
+//      table      = an array of objects (collection)
 //        
 //
 //
 // 1)   ---> Parse 'conditions', separate 'regular' and 'date' conditions
 // 2)       ---> Filter 'table' based on 'regular' conditons. Return Filtered table (f_table)
 // 3)          ---> Date_Filter 'f_table' based on 'date' conditons. Return Date_Filtered f_table
-// 4)            ---> Run Sum funcs (if any) on date_filtered f_table
-// 5)               ---> Make selected_table (s_table) from f_table, append count and sum 
-// 6)                  ---> return selected table (s_table)
+// 4)            ---> Filter f_table for requested colums 
+// 5)               --->  Run aggregate function on f_table
+// 6)                  ---> return f_table
 
 //Example: select(['evar5','evar10', 'date'], 'pageviews', {"evar10":"game_board_topic", "lt":"2015-03-01"}, dataset);
 function select(cols, metric, conds, table) {
